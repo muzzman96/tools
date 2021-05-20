@@ -1,4 +1,4 @@
-#VRFY SMNP Script to enumerate for users on a system
+#RCPT script to enumerate for users on an SMTP server
 
 #!/usr/bin/python3
 import socket, sys
@@ -13,23 +13,31 @@ def main():
 	#Receive banner and print
 	banner=s.recv(1024)
 	print(banner.decode())
-
-	if "503" in result.decode():
-	  str='HELO muzz' + '\r\n'
+	
+	#Send HELO SMTP command
+	str='HELO muzz' + '\r\n'
+	s.send(str.encode())
+	
+	#Print Banner
+	result=s.recv(1024)
+	print(result.decode())
+	
+	#Set Mail FROM
+	str='MAIL FROM: <muzz@test.com>' + '\r\n'
+	s.send(str.encode())
+	result=s.recv(1024)
+	print(result.decode())
+	
+	#Open target list file
+	f = open("emails.txt")
+	
+	#Run for loop with RCPT SMTP command set
+	for i in f:
+		str='RCPT TO: <' + i + '>\r\n'
 		s.send(str.encode())
 		result=s.recv(1024)
-		print(result.decode())
-		str='MAIL FROM: <muzz@test.com>' + '\r\n'
-		s.send(str.encode())
-		result=s.recv(1024)
-		print(result.decode())
-		f = open("emails.txt")
-		for i in f:
-			str='RCPT TO: <' + i + '>\r\n'
-			s.send(str.encode())
-			result=s.recv(1024)
-			if "250" in result.decode():
-				print("valid email: " + i)
+		if "250" in result.decode():
+			print("valid email: " + i)
 		f.close()
 		s.close()
 	else:
